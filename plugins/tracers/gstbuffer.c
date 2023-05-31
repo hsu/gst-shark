@@ -72,6 +72,8 @@ static void
 gst_buffer_buffer_pre (GObject * self, GstClockTime ts, GstPad * pad,
     GstBuffer * buffer)
 {
+  // if (!GST_IS_BUFFER(buffer)) return;
+
   gchar *pad_name;
   GstClockTime pts;
   gchar *spts;
@@ -101,7 +103,11 @@ gst_buffer_buffer_pre (GObject * self, GstClockTime ts, GstPad * pad,
   offset = GST_BUFFER_OFFSET (buffer);
   offset_end = GST_BUFFER_OFFSET_END (buffer);
 
+  if (GST_IS_BUFFER(buffer)) {
   size = gst_buffer_get_size (buffer);
+  } else {
+  size = 0;
+  }
 
   flags = GST_BUFFER_FLAGS (buffer);
   g_value_init (&vflags, GST_TYPE_BUFFER_FLAGS);
@@ -128,6 +134,7 @@ static void
 gst_buffer_range_post (GObject * self, GstClockTime ts, GstPad * pad,
     GstBuffer * buffer, GstFlowReturn res)
 {
+  // if (!GST_IS_BUFFER(buffer)) return;
   gst_buffer_buffer_pre (self, ts, pad, buffer);
 }
 
@@ -140,6 +147,7 @@ gst_buffer_buffer_list_pre (GObject * self, GstClockTime ts, GstPad * pad,
 
   for (idx = 0; idx < gst_buffer_list_length (list); ++idx) {
     buffer = gst_buffer_list_get (list, idx);
+    // if (GST_IS_BUFFER(buffer))
     gst_buffer_buffer_pre (self, ts, pad, buffer);
   }
 }

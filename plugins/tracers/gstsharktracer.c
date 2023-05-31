@@ -235,16 +235,66 @@ gst_shark_tracer_constructed (GObject * object)
   gst_shark_tracer_save_params (self);
 }
 
+typedef struct _GHashNode      GHashNode;
+
+struct _GHashNode
+{
+  gpointer   key;
+  gpointer   value;
+  GHashNode *next;
+  guint      key_hash;
+};
+struct _GHashTable
+{
+  gint             size;
+  gint             nnodes;
+  GHashNode      **nodes;
+  GHashFunc        hash_func;
+  GEqualFunc       key_equal_func;
+  volatile gint    ref_count;
+#ifndef G_DISABLE_ASSERT
+  /*
+   * Tracks the structure of the hash table, not its contents: is only
+   * incremented when a node is added or removed (is not incremented
+   * when the key or data of a node is modified).
+   */
+  int              version;
+#endif
+  GDestroyNotify   key_destroy_func;
+  GDestroyNotify   value_destroy_func;
+};
+typedef struct
+{
+  GHashTable  *hash_table;
+  GHashNode *prev_node;
+  GHashNode *node;
+  int   position;
+  gboolean  pre_advanced;
+  int   version;
+} RealIter;
+
 static void
 gst_shark_tracer_free_params (GstSharkTracerPrivate * priv)
 {
   GHashTableIter iter;
   gpointer key, value;
+  int hash_is_ok = 1;
 
   g_hash_table_iter_init (&iter, priv->params);
-  while (g_hash_table_iter_next (&iter, &key, &value)) {
-    g_free (key);
-    g_list_free_full (value, g_free);
+
+  // while (g_hash_table_iter_next (&iter, &key, &value)) {
+  while (hash_is_ok == 1) {
+    RealIter *ri = (RealIter *)&iter;
+    if (ri->version == ri->hash_table->version) {
+      if (g_hash_table_iter_next (&iter, &key, &value)) {
+        g_free (key);
+        g_list_free_full (value, g_free);
+      } else {
+        hash_is_ok = 0;
+      }
+    } else {
+      hash_is_ok = 0;
+    }
   }
 }
 
@@ -416,6 +466,8 @@ static void
 gst_shark_tracer_hook_pad_push_pre (GObject * object, GstClockTime ts,
     GstPad * pad, GstBuffer * buffer)
 {
+  // if (!GST_IS_BUFFER(buffer)) return;
+
   GstSharkTracer *self = GST_SHARK_TRACER (object);
   GstSharkTracerPrivate *priv = GST_SHARK_TRACER_PRIVATE (self);
   GCallback hook;
@@ -521,6 +573,8 @@ static void
 gst_shark_tracer_hook_pad_pull_range_post (GObject * object, GstClockTime ts,
     GstPad * pad, GstBuffer * buffer, GstFlowReturn res)
 {
+  // if (!GST_IS_BUFFER(buffer)) return;
+
   GstSharkTracer *self = GST_SHARK_TRACER (object);
   GstSharkTracerPrivate *priv = GST_SHARK_TRACER_PRIVATE (self);
   GCallback hook;

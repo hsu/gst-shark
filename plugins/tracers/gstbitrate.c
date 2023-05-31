@@ -169,7 +169,11 @@ do_pad_push_buffer_pre (GstBitrateTracer * self, guint64 ts, GstPad * pad,
 {
   gsize bytes;
 
-  bytes = gst_buffer_get_size (buffer);
+  if (GST_IS_BUFFER (buffer)) {
+    bytes = gst_buffer_get_size (buffer);
+  } else {
+    bytes = 0;
+  }
   add_bytes (self, ts, pad, bytes);
 }
 
@@ -182,6 +186,7 @@ do_pad_push_list_pre (GstBitrateTracer * self, GstClockTime ts, GstPad * pad,
 
   for (idx = 0; idx < gst_buffer_list_length (list); ++idx) {
     buffer = gst_buffer_list_get (list, idx);
+    // if (GST_IS_BUFFER(buffer))
     do_pad_push_buffer_pre (self, ts, pad, buffer);
   }
 }
