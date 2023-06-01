@@ -466,8 +466,6 @@ static void
 gst_shark_tracer_hook_pad_push_pre (GObject * object, GstClockTime ts,
     GstPad * pad, GstBuffer * buffer)
 {
-  // if (!GST_IS_BUFFER(buffer)) return;
-
   GstSharkTracer *self = GST_SHARK_TRACER (object);
   GstSharkTracerPrivate *priv = GST_SHARK_TRACER_PRIVATE (self);
   GCallback hook;
@@ -573,8 +571,6 @@ static void
 gst_shark_tracer_hook_pad_pull_range_post (GObject * object, GstClockTime ts,
     GstPad * pad, GstBuffer * buffer, GstFlowReturn res)
 {
-  // if (!GST_IS_BUFFER(buffer)) return;
-
   GstSharkTracer *self = GST_SHARK_TRACER (object);
   GstSharkTracerPrivate *priv = GST_SHARK_TRACER_PRIVATE (self);
   GCallback hook;

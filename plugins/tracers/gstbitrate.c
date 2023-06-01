@@ -186,7 +186,6 @@ do_pad_push_list_pre (GstBitrateTracer * self, GstClockTime ts, GstPad * pad,
 
   for (idx = 0; idx < gst_buffer_list_length (list); ++idx) {
     buffer = gst_buffer_list_get (list, idx);
-    // if (GST_IS_BUFFER(buffer))
     do_pad_push_buffer_pre (self, ts, pad, buffer);
   }
 }
